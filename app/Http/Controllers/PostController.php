@@ -3,47 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Services\PostService;
 
 class PostController extends Controller
 {
+
+    protected $service;
+
+    public function __construct(PostService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return Post::paginate(10);
+        return $this->service->getAll();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $user = auth()->user();
-        $post = Post::create([
-            'user_id'=> $user->id?? null,
-            'post_category_id'=> $request->post_category_id,
-            'title'=>   $request->title,
-            'content'=>  $request->content,
-            'slug'=> Str::slug( $request->title),
-            'seo_title'=> $request->seo_title,
-            'seo_description'=> $request->seo_description,
-            'focus_keyword'=> $request->focus_keyword,
-            'status'=> $request->status,
-            'thumbnail'=> $request->thumbnail,
-            'thumbnail_alt_text'=> $request->thumbnail_alt_text,
-        ]);
-
+        $request->merge(['user_id' => auth()->user()->id ?? null]);
+        $post = $this->service->create($request->except('categories','thumbnail', 'tags'));
         return $post;
     }
 
@@ -56,32 +44,20 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Post $post)
+    public function update(Request $request, int $id)
     {
-        if($post){
-            $post->fill($request->except('categories','thumbnail', 'tags'));
-            $post->save();
-        }
+        $request->merge(['user_id' => auth()->user()->id ?? null]);
+        $post = $this->service->update($id, $request->except('categories','thumbnail', 'tags'));
         return $post;
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post)
+    public function destroy(int $id)
     {
-        if($post){
-            return $post->delete();
-        }
+        return $this->service->delete($id);
     }
 }
