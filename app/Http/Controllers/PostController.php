@@ -32,7 +32,7 @@ class PostController extends Controller
      */
     public function store(PostStoreRequest $request)
     {
-        $post = $this->service->create($request->except('categories','thumbnail', 'tags'));
+        $post = $this->service->create($request);
         return $post;
     }
 
