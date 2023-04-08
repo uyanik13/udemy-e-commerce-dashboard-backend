@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 if(!function_exists('uploadImage')){
     function uploadImage(UploadedFile $file, string $path, string $imageName = null)
     {
-        $extension = $file->getClientOriginalExtenstion();
+        $extension = $file->getClientOriginalExtension();
         $imageName = $imageName?? uniqid();
         $fileName = $imageName . '.' . $extension;
         Storage::disk('public')->putFileAs('images/'. $path, $file, $fileName);

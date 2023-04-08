@@ -28,7 +28,7 @@ class PostStoreRequest extends FormRequest
         return [
             'title' => 'required|max:161',
             'content' => 'required',
-            'post_category_id' => 'required|exist:post_categories,id',
+            'post_category_id' => 'required|exists:post_categories,id',
             'status' => 'required',
         ];
     }

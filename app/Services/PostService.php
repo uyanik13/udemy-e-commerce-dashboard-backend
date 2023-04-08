@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
-use App\Repositories\PostRepository;
+use App\Models\PostCategory;
+use Illuminate\Http\Request;
 use App\Services\BaseService;
+use App\Repositories\PostRepository;
 
 class PostService extends BaseService
 {
@@ -24,14 +26,32 @@ class PostService extends BaseService
        return $this->repository->find($id);
     }
 
-    public function create(array $data)
+    public function create(Request $request)
     {
-       return $this->repository->create($data);
+      $createdPost = $this->repository->create($request->except('categories', 'tags', 'thumbnail'));
+
+      if($request->hasFile('thumbnail') && $request->file('thumbnail')->isValid()){
+         $image = uploadImage($request->thumbnail, 'post');
+         if(is_array($image) && isset($image['image_url'])){
+            $createdPost->thumbnail = $image['image_url'];
+            $createdPost->save();
+         }
+      }
+
+      if($request->has('categories')){
+         $createdPost->categories()->sync($request->categories);
+      }
+
+      if($request->has('tags')){
+         $createdPost->tags()->sync($request->tags);
+      }
+
+       return $createdPost;
     }
     
-    public function update(int $id, array $data)
+    public function update(int $id, Request $request)
     {
-       return $this->repository->update($id, $data);
+       return $this->repository->update($id, $request->toArray());
     }
 
     public function delete(int $id)
