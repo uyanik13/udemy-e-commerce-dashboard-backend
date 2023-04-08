@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Services\PostService;
+use App\Http\Requests\PostStoreRequest;
+use App\Http\Requests\PostUpdateRequest;
 
 class PostController extends Controller
 {
@@ -28,9 +30,8 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(PostStoreRequest $request)
     {
-        $request->merge(['user_id' => auth()->user()->id ?? null]);
         $post = $this->service->create($request->except('categories','thumbnail', 'tags'));
         return $post;
     }
@@ -46,9 +47,8 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(PostUpdateRequest $request, int $id)
     {
-        $request->merge(['user_id' => auth()->user()->id ?? null]);
         $post = $this->service->update($id, $request->except('categories','thumbnail', 'tags'));
         return $post;
     }
