@@ -26,7 +26,7 @@ class PostUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'post_category_id' => 'required|exist:post_categories,id',
+            'post_category_id' => 'required|exists:post_categories,id',
             'status' => 'required',
         ];
     }

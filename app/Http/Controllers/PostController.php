@@ -39,9 +39,9 @@ class PostController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Post $post)
+    public function show(int $id)
     {
-        return $post;
+        return $this->service->find($id);
     }
 
     /**
@@ -49,7 +49,7 @@ class PostController extends Controller
      */
     public function update(PostUpdateRequest $request, int $id)
     {
-        $post = $this->service->update($id, $request->except('categories','thumbnail', 'tags'));
+        $post = $this->service->update($id, $request);
         return $post;
     }
 
