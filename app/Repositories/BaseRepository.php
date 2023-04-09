@@ -16,7 +16,7 @@ abstract class BaseRepository
 
     public function all(int $paginate = 10)
     {
-        return $this->model->paginate($paginate);
+        return $this->model->orderBy('id', 'desc')->paginate($paginate);
     }
 
     public function find(int $id)
