@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,7 +21,7 @@ class PostTagFactory extends Factory
         return [
             'title' => $this->faker->word(),
             'slug' => Str::slug($this->faker->word()),
-            'seo_title' => $this->faker->word(),
+            'seo_title' => $this->faker->sentence(),
             'seo_description' => $this->faker->sentence()
         ];
     }

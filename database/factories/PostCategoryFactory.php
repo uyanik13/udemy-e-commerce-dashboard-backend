@@ -20,7 +20,7 @@ class PostCategoryFactory extends Factory
         return [
             'title' => $this->faker->word(),
             'slug' => Str::slug($this->faker->word()),
-            'seo_title' => $this->faker->word(),
+            'seo_title' => $this->faker->sentence(),
             'seo_description' => $this->faker->sentence(),
             'parent_id' => null,
         ];
