@@ -3,8 +3,6 @@
 namespace App\Repositories;
 
 use App\Models\PostCategory;
-use Illuminate\Database\Eloquent\Model;
-
 
 class PostCategoryRepository extends BaseRepository
 {
@@ -12,6 +10,4 @@ class PostCategoryRepository extends BaseRepository
     {
         parent::__construct($model);
     }
-
-
 }

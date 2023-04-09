@@ -9,7 +9,7 @@ class ProductShipping extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['product_id', 'shipping_id'];
+    protected $guarded = [];
 
 
 }

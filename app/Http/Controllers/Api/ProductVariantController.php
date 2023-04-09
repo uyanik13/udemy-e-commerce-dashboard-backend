@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\PostTag;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\ProductVariant;
 
-class PostTagController extends Controller
+class ProductVariantController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return PostTag::paginate(10);
+        return ProductVariant::all();
     }
 
     /**
@@ -34,7 +35,7 @@ class PostTagController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PostTag $postTag)
+    public function show(string $id)
     {
         //
     }
@@ -42,7 +43,7 @@ class PostTagController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PostTag $postTag)
+    public function edit(string $id)
     {
         //
     }
@@ -50,7 +51,7 @@ class PostTagController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PostTag $postTag)
+    public function update(Request $request, string $id)
     {
         //
     }
@@ -58,7 +59,7 @@ class PostTagController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PostTag $postTag)
+    public function destroy(string $id)
     {
         //
     }
