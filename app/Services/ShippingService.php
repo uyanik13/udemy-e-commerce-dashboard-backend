@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Repositories\PostCategoryRepository;
+use App\Repositories\ShippingRepository;
 use App\Services\BaseService;
 use Illuminate\Http\Request;
 
-class PostCategoryService extends BaseService
+class ShippingService extends BaseService
 {
     protected $repository;
 
-    public function __construct(PostCategoryRepository $repository)
+    public function __construct(ShippingRepository $repository)
     {
        $this->repository = $repository;
     }

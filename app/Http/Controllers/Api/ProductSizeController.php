@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Post;
-use App\Models\PostCategory;
+use App\Models\ProductSize;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
-class PostCategoryController extends Controller
+class ProductSizeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return PostCategory::paginate(10);
+        //
     }
 
     /**
@@ -29,13 +29,13 @@ class PostCategoryController extends Controller
      */
     public function store(Request $request)
     {
-        print_r($request->all());
+        //
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(ProductSize $productSize)
     {
         //
     }
@@ -43,7 +43,7 @@ class PostCategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(ProductSize $productSize)
     {
         //
     }
@@ -51,7 +51,7 @@ class PostCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, ProductSize $productSize)
     {
         //
     }
@@ -59,7 +59,7 @@ class PostCategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(ProductSize $productSize)
     {
         //
     }
