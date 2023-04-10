@@ -58,10 +58,10 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ProductUpdateRequest $request, Product $product)
+    public function update(ProductUpdateRequest $request, int $id)
     {
         try {
-            return response()->json($this->service->update($request, $product));
+            return response()->json($this->service->update($id, $request));
         } catch (\Exception $e) {
             return $e;
             //return response()->json(['error' => 'An error occurred'], 500);
@@ -71,10 +71,10 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(int $id)
     {
         try {
-            return response()->json($this->service->delete($product));
+            return response()->json($this->service->delete($id));
         } catch (\Exception $e) {
             return $e;
             //return response()->json(['error' => 'An error occurred'], 500);
