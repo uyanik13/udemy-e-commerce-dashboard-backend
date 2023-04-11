@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\PostTagController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\DiscountController;
 use App\Http\Controllers\Api\ShippingController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PostCategoryController;
 use App\Http\Controllers\Api\ProductVariantController;
 use App\Http\Controllers\Api\ProductCategoryController;
@@ -35,9 +36,11 @@ Route::prefix('auth')->middleware('auth:sanctum')->group(function(){
     Route::apiResource('product-variant-option', ProductVariantOptionController::class);
     Route::apiResource('discount', DiscountController::class);
     Route::apiResource('shipping', ShippingController::class);
+    Route::apiResource('dashboard', DashboardController::class);
 });
 
 
 
 Route::post('auth/register', [AuthController::class, 'register'])->name('api.user.register');
 Route::post('auth/login', [AuthController::class, 'login'])->name('api.user.login');
+Route::post('auth/logout', [AuthController::class, 'logout'])->name('api.user.logout');
