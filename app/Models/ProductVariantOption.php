@@ -9,10 +9,4 @@ class ProductVariantOption extends Model
 {
     use HasFactory;
     protected  $guarded = [];
-    protected  $with = ['product_variant'];
-
-    public function product_variant()
-    {
-        return $this->belongsTo(ProductVariant::class, 'product_variant_id', 'id');
-    }
 }

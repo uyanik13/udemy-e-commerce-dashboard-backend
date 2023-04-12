@@ -10,7 +10,7 @@ class Product extends Model
 
     protected $guarded = [];
 
-    protected $with = ['product_category', 'discount', 'size', 'images'];
+    protected $with = ['size', 'images'];
 
     protected $appends = ['product_variants', 'shipping_id'];
 
@@ -24,17 +24,17 @@ class Product extends Model
         return $this->belongsTo(Discount::class);
     }
 
-    public function product_variant_options()
+    public function productVariantOptions()
     {
         return $this->hasMany(ProductVariantOption::class,'product_id', 'id');
     }
 
-    public function product_variant_options_invetories()
+    public function productVariantOptionInventories()
     {
         return $this->hasMany(ProductVariantOptionInventory::class,'product_id', 'id');
     }
 
-    public function product_variant_options_prices()
+    public function productVariantOptionPrices()
     {
         return $this->hasMany(ProductVariantOptionPrice::class,'product_id','id');
     }
@@ -67,21 +67,34 @@ class Product extends Model
         return optional($this->productShipping)->shipping_id;
     }
 
-    public function getProductVariantsAttribute()
-    {   
+    public function getProductVariantsAttribute($loadProductVariants = false)
+    {
+        if (!$loadProductVariants) {
+            $this->load('productVariantOptions');
+        }
+        // Load the required relationships if not loaded
+        if (!$this->relationLoaded('productVariantOptionInventories')) {
+            $this->load('productVariantOptionInventories');
+        }
+
+        if (!$this->relationLoaded('productVariantOptionPrices')) {
+            $this->load('productVariantOptionPrices');
+        }
+
         $productVariants = [];
 
-        foreach ($this->product_variant_options_invetories as $index =>  $pvoi) {
-            $productVariants[$index ]['id'] = $pvoi->id;
-            $productVariants[$index ]['stock']= $pvoi->stock;
+        foreach ($this->productVariantOptionInventories as $index =>  $pvoi) {
+            $productVariants[$index]['id'] = $pvoi->id;
+            $productVariants[$index]['stock'] = $pvoi->stock;
         }
 
-        foreach ($this->product_variant_options_prices as $index =>  $pvop) {
-            $productVariants[$index ]['id'] = $pvop->id;
-            $productVariants[$index ]['price']= $pvop->price;
-            $productVariants[$index ]['value']= $pvop->product_variant_option['value'];
+        foreach ($this->productVariantOptionPrices as $index =>  $pvop) {
+            $productVariants[$index]['id'] = $pvop->id;
+            $productVariants[$index]['price'] = $pvop->price;
+            $productVariants[$index]['value'] = $pvop->product_variant_option['value'];
         }
-        
+
         return $productVariants;
     }
+
 }

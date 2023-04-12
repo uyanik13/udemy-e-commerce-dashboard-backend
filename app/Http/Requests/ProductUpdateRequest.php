@@ -34,4 +34,17 @@ class ProductUpdateRequest extends FormRequest
             'product_variants' => ['required', new ProductVariantRule()]
         ];
     }
+
+    public function passedValidation()
+    {
+       // Remove the unwanted property from the request data
+       $requestData = $this->except('created_at','updated_at', 'product_variant_options', 'product_variant_option_inventories', 'product_variant_option_prices', 'product_shipping');
+
+        // Merge the new data into the request
+        $this->replace(array_merge($requestData, [
+            'product_variants' => json_decode($this->product_variants, true),
+            'deleted_images' => json_decode($this->deleted_images, true),
+            'deleted_variants' => json_decode($this->deleted_variants, true),
+        ]));
+    }
 }

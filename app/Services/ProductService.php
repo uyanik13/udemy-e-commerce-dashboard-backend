@@ -6,14 +6,17 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Repositories\ProductRepository;
+use App\Repositories\ProductVariantRepository;
 
 class ProductService extends BaseService
 {
    protected $repository;
+   protected $productVariantRepository;
 
-   public function __construct(ProductRepository $repository)
+   public function __construct(ProductRepository $repository, ProductVariantRepository $productVariantRepository)
    {
       $this->repository = $repository;
+      $this->productVariantRepository = $productVariantRepository;
    }
 
    public function getAll()
@@ -23,42 +26,50 @@ class ProductService extends BaseService
 
    public function find(int $id)
    {
-      $product = $this->repository->find($id);
-      $product = $product->toArray();
-      return $this->deleteApiAttributes($product);
+      return $this->repository->find($id);
    }
 
    public function create(Request $request)
    {
-
-      $product = $this->repository->create($request->except('size', 'images', 'shipping_id', 'product_variants'));
-
-      if ($request->has('images') && is_array($request->images) && count($request->images)) {
-         $images = $request->images;
-         foreach ($images as $image) {
-            $imageData = uploadImage($image, 'product');
-            $imageData['product_id'] = $product->id;
-            $product->images()->create($imageData);
-         }
-      }
-
-      $product->size()->create($request->size);
-      $product->productShipping()->create(['shipping_id' => $request->shipping_id]);
-
-      $this->createVariants($request->product_variants, $product);
+      $attributes = $request->except(['size', 'images', 'shipping_id', 'product_variants']);
+      $product = $this->repository->create($attributes);
+      $this->updateProductAssociations($product, $request);
    }
 
    public function update(int $id, Request $request)
    {
       $product = $this->repository->find($id);
-      $product->fill($request->except('size', 'images', 'shipping_id', 'product_variants', 'deleted_images'));
+      $product->fill($request->except(['size', 'images', 'shipping_id', 'product_variants', 'deleted_images', 'deleted_variants']));
       $product->save();
+      $this->updateProductAssociations($product, $request);
+   }
 
-      $deletedImages = json_decode($request->deleted_images, true);
+   public function delete(int $id)
+   {
+      $product = $this->repository->find($id);
+      $this->deleteProductAssociations($product);
+      $product->delete();
+   }
 
-      if (is_array($deletedImages) && count($deletedImages) && isset($deletedImages[0]['id'])) {
-         foreach ($deletedImages as $image) {
-            $product->images()->delete($image);
+   protected function updateProductAssociations(Product $product, Request $request)
+   {
+      $this->manageProductImages($product, $request);
+      $product->size()->updateOrCreate([], $request->size);
+      $product->productShipping()->updateOrCreate([], ['shipping_id' => $request->shipping_id]);
+      
+      if ($request->has('deleted_variants') && is_array($request->deleted_variants) && count($request->deleted_variants)) {
+         $this->deleteVariants($request->deleted_variants, $product);
+      }
+      if ($request->has('product_variants') && is_array($request->product_variants) && count($request->product_variants)) {
+         $this->createVariants($request->product_variants, $product);
+      }
+   }
+
+   protected function manageProductImages(Product $product, Request $request)
+   {
+      if ($request->has('deleted_images') && is_array($request->deleted_images) && count($request->deleted_images)) {
+         foreach ($request->deleted_images as $image) {
+            $product->images()->findOrFail($image['id'])->delete();
          }
       }
 
@@ -70,90 +81,55 @@ class ProductService extends BaseService
             $product->images()->create($imageData);
          }
       }
-
-      $product->size()->update($request->size);
-      $product->productShipping()->update(['shipping_id' => $request->shipping_id]);
-
-       
-       $this->deleteVariants($product);
-       $this->createVariants($request->product_variants, $product);
    }
 
-   public function delete(int $id)
+   protected function deleteProductAssociations(Product $product)
    {
-      $product = $this->repository->find($id);
-      
-      if(count($product->images()->get())){
-         $product->images()->delete();
-      }
-      if(count($product->productShipping()->get())){
-            $product->productShipping()->delete();
-      }
-      if(count($product->size()->get())){
-            $product->size()->delete();
-      }
-
-      $this->deleteVariants($product);
-
-      $product->delete();
+      $product->images()->delete();
+      $product->productShipping()->delete();
+      $product->size()->delete();
+      //$this->deleteVariants($product);
    }
 
-   protected function createVariants(string $productVariants, Product $product)
+   protected function createVariants(array $productVariants, Product $product)
    {
-      $productVariants = json_decode($productVariants, true);
-
       foreach ($productVariants as $variant) {
-
          if (is_array($variant) && isset($variant['id'])) {
-            $productVariantOption = $product->product_variant_options()->create([
-               'product_variant_id' => $variant['id'],
-               'value' => $variant['value']
-            ]);
-            $product->product_variant_options_invetories()->create([
-               'product_variant_option_id' => $productVariantOption->id,
-               'stock' => $variant['stock']
-            ]);
-            $product->product_variant_options_prices()->create([
-               'product_variant_option_id' => $productVariantOption->id,
-               'price' => $variant['price']
-            ]);
+            $productVariant = $this->productVariantRepository->find($variant['id']);
+            if ($productVariant) {
+               $productVariantOption = $product->productVariantOptions()->create([
+                  'product_variant_id' => $productVariant->id,
+                  'value' => $variant['value']
+               ]);
+               $product->productVariantOptionInventories()->create([
+                  'product_variant_option_id' => $productVariantOption->id,
+                  'stock' => $variant['stock']
+               ]);
+               $product->productVariantOptionPrices()->create([
+                  'product_variant_option_id' => $productVariantOption->id,
+                  'price' => $variant['price']
+               ]);
+            }
          }
       }
    }
 
-   protected function deleteVariants($product)
+   protected function deleteVariants(array $deleteVariants, Product $product)
    {
+      if (is_array($deleteVariants) && count($deleteVariants)) {
+         foreach ($deleteVariants as $variant) {
+            if (isset($variant['id'])) {
+               // Find and delete the related product_variant_options_inventories
+               $product->productVariantOptionInventories()->where('stock', $variant['stock'])->delete();
 
-       $pvois = $product->product_variant_options_invetories()->get();
-       $pvops = $product->product_variant_options_prices()->get();
-       $pvos = $product->product_variant_options()->get();
+               // Find and delete the related product_variant_options_prices
+               $product->productVariantOptionPrices()->where('price', $variant['price'])->delete();
 
-
-       if (count($pvois)) {
-           $product->product_variant_options_invetories()->delete();
-       }
-
-       // Check if product_variant_options_prices is not an array and delete if true
-       if (count($pvops)) {
-           $product->product_variant_options_prices()->delete();
-       }
-
-       // Check if product_variant_options is not an array and delete if true
-       if (count($pvos)) {
-           $product->product_variant_options()->delete();
-       }
-
-   }
-
-   protected function deleteApiAttributes(array $product)
-   {
-      unset($product['product_variant_options_invetories']);
-      unset($product['product_variant_options_prices']);
-      unset($product['updated_at']);
-      unset($product['created_at']);
-      unset($product['discount']);
-      unset($product['product_category']);
-      unset($product['product_shipping']);
-      return $product;
+               // Find and delete the related product_variant_options
+               $product->productVariantOptions()->where('id', $variant['id'])->delete();
+           }
+         }
+      }
+     
    }
 }
